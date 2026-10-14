@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sai Monish Verukonda</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+body{margin:0}img{max-width:100%}[hidden]{display:none!important}
+
+/* Layout concept: a survey map sheet. A dark topographic hero, then light "sheets" whose
+   mono labels read like map-series margins; illustrations behave like live GIS layers. */
+:root{
+  --paper:#F4F7F6; --surface:#FFFFFF; --ink:#13262B; --muted:#55686B; --line:#D5E0DD;
+  --teal:#1B7A6C; --teal-soft:#E1EFEC; --amber:#D88B1C; --amber-ink:#97590A;
+  --deep:#0D3A42; --deep-2:#0A2E35; --on-deep:#E8F2F0; --on-deep-muted:#9FC2BC;
+  --contour:rgba(84,170,156,.42); --contour-index:rgba(120,205,188,.78);
+  --lu-blank:#DCE4E2; --lu-res:#F1C84B; --lu-com:#4C8BD6; --lu-ind:#8C6BC0; --lu-psp:#D7644B;
+  --lu-green:#62AE66; --lu-agri:#CDE2AE; --lu-water:#78C3E3; --road:#FFFFFF;
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+  --radius:14px; --wrap:1160px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0B1D21; --surface:#112930; --ink:#E2EEEB; --muted:#94ABA8; --line:#21434A;
+  --teal:#45B5A1; --teal-soft:#143A3B; --amber:#F0A63A; --amber-ink:#F0A63A;
+  --deep:#08262C; --deep-2:#061E23; --lu-blank:#24434A; --road:#0B1D21; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0B1D21; --surface:#112930; --ink:#E2EEEB; --muted:#94ABA8; --line:#21434A;
+  --teal:#45B5A1; --teal-soft:#143A3B; --amber:#F0A63A; --amber-ink:#F0A63A;
+  --deep:#08262C; --deep-2:#061E23; --lu-blank:#24434A; --road:#0B1D21; color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--f-display);line-height:1.1;text-wrap:balance;margin:0}
+p{margin:0}
+a{color:inherit}
+.wrap{max-width:var(--wrap);margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.mono{font-family:var(--f-mono)}
+.label{font-family:var(--f-mono);font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);font-weight:500}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px;border-radius:4px}
+
+/* nav */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--deep-2) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:var(--on-deep)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:12px}
+.brand{font-family:var(--f-display);font-weight:700;font-size:18px;text-decoration:none;white-space:nowrap}
+.brand span{color:var(--amber)}
+.nav ul{display:flex;gap:22px;list-style:none;margin:0;padding:0;font-size:14.5px}
+.nav ul a{text-decoration:none;color:var(--on-deep-muted);transition:color .2s}
+.nav ul a:hover,.nav ul a.on{color:var(--on-deep)}
+@media (max-width:860px){.nav ul li:not(:last-child){display:none}}
+
+/* hero */
+.hero{position:relative;background:var(--deep);color:var(--on-deep);overflow:hidden}
+#contours{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hero .wrap{position:relative;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.65fr);gap:48px;align-items:center;padding-block:88px 96px}
+.hero .label{color:var(--amber)}
+.hero h1{font-size:clamp(44px,7vw,88px);font-weight:800;letter-spacing:-.02em;margin-top:18px}
+.hero h1 .thin{display:block;font-weight:500;font-size:.42em;letter-spacing:0;color:var(--on-deep-muted);margin-top:14px}
+.lead{font-size:clamp(18px,2vw,21px);max-width:58ch;margin-top:26px;color:var(--on-deep)}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:34px}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:13px 22px;border-radius:999px;font-weight:600;font-size:15.5px;text-decoration:none;border:1.5px solid transparent;transition:transform .2s,background .2s}
+.btn.primary{background:var(--amber);color:#1B1305}
+.btn.ghost{border-color:color-mix(in srgb,var(--on-deep) 40%,transparent);color:var(--on-deep)}
+.btn:hover{transform:translateY(-2px)}
+.portrait{position:relative;justify-self:center;width:min(300px,100%);aspect-ratio:1;max-width:100%}
+.portrait img{position:absolute;inset:9%;width:82%;height:82%;object-fit:cover;border-radius:50%;border:4px solid var(--on-deep)}
+.portrait svg{position:absolute;inset:0;width:100%;height:100%;animation:spin 60s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.readout{position:absolute;left:0;right:0;bottom:0}
+.readout .wrap{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;padding-block:0 18px;font-family:var(--f-mono);font-size:12px;color:var(--on-deep-muted)}
+.scalebar{display:flex;align-items:center;gap:10px}
+.scalebar i{display:block;width:110px;height:7px;background:linear-gradient(90deg,var(--on-deep) 0 25%,transparent 25% 50%,var(--on-deep) 50% 75%,transparent 75%);border:1px solid var(--on-deep)}
+@media (max-width:820px){.hero .wrap{grid-template-columns:1fr;padding-block:56px 84px}.portrait{width:200px;justify-self:start;grid-row:1}}
+@media (max-width:520px){.scalebar{display:none}}
+
+/* stats */
+.stats{background:var(--surface);border-bottom:1px solid var(--line)}
+.stats .wrap{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;padding-block:34px}
+.stat b{display:block;font-family:var(--f-display);font-size:clamp(40px,5vw,56px);font-weight:800;color:var(--teal);line-height:1;font-variant-numeric:tabular-nums}
+.stat span{display:block;margin-top:10px;color:var(--muted);font-size:15px;max-width:24ch}
+@media (max-width:760px){.stats .wrap{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* sections */
+section.sheet{padding-block:96px}
+section.sheet + section.sheet{border-top:1px solid var(--line)}
+.sheet-head{display:grid;gap:14px;margin-bottom:46px;max-width:760px}
+.sheet-head h2{font-size:clamp(32px,4.4vw,50px);font-weight:700;letter-spacing:-.015em}
+.sheet-head p{color:var(--muted);font-size:18px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+@media (max-width:900px){.grid3{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:26px;min-width:0}
+.panel h3{font-size:22px;font-weight:700}
+.panel .meta{font-family:var(--f-mono);font-size:12.5px;color:var(--muted);margin-top:6px;letter-spacing:.03em}
+.panel ul{margin:16px 0 0;padding-left:18px;color:var(--ink)}
+.panel li{margin-bottom:6px}
+.panel li::marker{color:var(--teal)}
+.big{font-family:var(--f-display);font-weight:800;font-size:46px;color:var(--teal);line-height:1}
+.big small{font-family:var(--f-body);font-size:16px;font-weight:500;color:var(--muted);margin-left:8px}
+
+/* reveal: content is visible at rest; JS only adds a gentle lift for items below the fold */
+.lift{transform:translateY(22px);transition:transform .8s cubic-bezier(.2,.7,.2,1)}
+.lift.in{transform:none}
+
+/* profile */
+.profile{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:40px}
+.profile .summary p{font-size:19px;margin-bottom:18px;max-width:62ch}
+.creds{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.creds li{display:grid;grid-template-columns:72px minmax(0,1fr);gap:16px;padding:14px 0;border-bottom:1px solid var(--line)}
+.creds li:first-child{padding-top:0}
+.creds .yr{font-family:var(--f-mono);color:var(--amber-ink);font-size:14px;padding-top:2px}
+.creds b{display:block;font-weight:600}
+.creds span{color:var(--muted);font-size:15px}
+@media (max-width:900px){.profile{grid-template-columns:1fr}}
+
+/* timeline */
+.timeline{position:relative;padding-left:44px;display:grid;gap:30px}
+.timeline::before{content:"";position:absolute;left:11px;top:6px;bottom:6px;width:3px;background:var(--line);border-radius:3px}
+.timeline .prog{position:absolute;left:11px;top:6px;width:3px;height:calc((100% - 12px) * var(--p,1));background:var(--teal);border-radius:3px}
+.tl{position:relative;display:grid;grid-template-columns:130px minmax(0,1fr);gap:22px}
+.tl::before{content:"";position:absolute;left:-41px;top:7px;width:17px;height:17px;border-radius:50%;background:var(--surface);border:3.5px solid var(--teal)}
+.tl.edu::before{border-color:var(--amber)}
+.tl .when{font-family:var(--f-mono);font-size:14.5px;color:var(--muted);padding-top:3px}
+.tl h3{font-size:21px;font-weight:700}
+.tl p{color:var(--muted)}
+.tl .tag{display:inline-block;margin-top:8px;font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:999px;background:var(--teal-soft);color:var(--teal)}
+.tl.edu .tag{background:color-mix(in srgb,var(--amber) 16%,transparent);color:var(--amber-ink)}
+@media (max-width:600px){.tl{grid-template-columns:1fr;gap:4px}}
+
+/* land-use map */
+.mapcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;min-width:0}
+.mapcard svg{display:block;width:100%;height:auto}
+.lu{transition:fill .55s ease}
+.blank .lu{fill:var(--lu-blank)!important;transition:none}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:14px;font-size:13.5px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:7px;vertical-align:-1px}
+.caption{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);margin-top:10px;letter-spacing:.03em}
+.steps{list-style:none;margin:22px 0 0;padding:0;display:grid;gap:10px;counter-reset:s}
+.steps li{display:grid;grid-template-columns:38px minmax(0,1fr);align-items:center;gap:12px;font-weight:500}
+.steps li::before{counter-increment:s;content:counter(s,decimal-leading-zero);font-family:var(--f-mono);font-size:13px;color:var(--amber-ink);border:1.5px solid var(--amber);border-radius:50%;width:34px;height:34px;display:grid;place-items:center}
+.plans{display:grid;gap:14px;margin-top:26px}
+.plan{border-left:0;background:var(--teal-soft);border-radius:12px;padding:16px 18px}
+.plan b{display:block;font-family:var(--f-display);font-size:19px}
+.plan span{color:var(--muted);font-size:15px}
+
+/* portal mock */
+.portal{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;min-width:0;box-shadow:0 18px 50px -24px rgba(8,38,44,.45)}
+.portal .bar{display:flex;align-items:center;gap:8px;padding:11px 14px;background:var(--deep);color:var(--on-deep-muted);font-family:var(--f-mono);font-size:12px}
+.portal .bar i{width:10px;height:10px;border-radius:50%;background:color-mix(in srgb,var(--on-deep) 30%,transparent)}
+.portal .bar span{margin-left:8px}
+.portal .search{margin:14px;padding:10px 14px;border:1px solid var(--line);border-radius:10px;font-family:var(--f-mono);font-size:13.5px;color:var(--ink);display:flex;gap:10px;align-items:center;min-height:42px}
+.portal .search em{color:var(--muted);font-style:normal}
+.caret{display:inline-block;width:2px;height:16px;background:var(--teal);animation:blink 1s steps(1) infinite;vertical-align:-3px}
+@keyframes blink{50%{opacity:0}}
+.portal svg{display:block;width:100%;height:auto}
+.parcel{fill:var(--lu-blank);stroke:var(--surface);stroke-width:2}
+.parcel.hit{fill:var(--lu-ind);animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{50%{fill-opacity:.55}}
+.route{fill:none;stroke:var(--amber);stroke-width:4;stroke-linecap:round;stroke-dasharray:420;stroke-dashoffset:420;animation:draw 4.5s ease-in-out infinite}
+@keyframes draw{0%{stroke-dashoffset:420}55%,85%{stroke-dashoffset:0}100%{stroke-dashoffset:-420}}
+.feats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.feat{padding:16px 18px;border-radius:12px;background:var(--surface);border:1px solid var(--line)}
+.feat b{display:block;font-weight:600}
+.feat span{font-size:14.5px;color:var(--muted)}
+.pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.pill{padding:8px 14px;border-radius:999px;border:1.5px solid var(--teal);color:var(--teal);font-size:14px;font-weight:500}
+
+/* point cloud */
+.cloud{background:var(--deep);border-radius:var(--radius);overflow:hidden;position:relative;min-width:0}
+.cloud canvas{display:block;width:100%;height:360px}
+.cloud .caption{position:absolute;left:16px;bottom:12px;color:var(--on-deep-muted);margin:0}
+.ramp{position:absolute;right:16px;bottom:14px;width:120px;height:8px;border-radius:4px;background:linear-gradient(90deg,#2c7bb6,#00ccbc,#90eb9d,#ffff8c,#f29e2e,#d7191c)}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{padding:9px 14px;border-radius:10px;background:var(--surface);border:1px solid var(--line);font-weight:500;font-size:15px}
+.deliver{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 22px}
+.deliver li{display:flex;gap:10px;align-items:baseline}
+.deliver li::before{content:"";flex:none;width:9px;height:9px;border-radius:2px;background:var(--amber);transform:rotate(45deg)}
+@media (max-width:520px){.deliver,.feats{grid-template-columns:1fr}}
+
+/* skills + roles */
+.skill h3{font-size:19px}
+.skill .tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+.skill .tags span{font-size:13.5px;padding:5px 10px;border-radius:7px;background:var(--teal-soft);color:var(--ink)}
+.wins{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 40px}
+.wins li{padding:18px 0;border-top:1px solid var(--line)}
+.wins b{display:block;font-family:var(--f-display);font-size:19px;margin-bottom:4px}
+.wins span{color:var(--muted)}
+@media (max-width:760px){.wins{grid-template-columns:1fr}}
+.role{position:relative;overflow:hidden}
+.role h3{font-size:21px}
+.role p{color:var(--muted);margin-top:8px;font-size:15.5px}
+.role .k{font-family:var(--f-mono);font-size:12px;color:var(--amber-ink);letter-spacing:.08em;text-transform:uppercase}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+@media (max-width:1000px){.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.grid4{grid-template-columns:1fr}}
+
+/* contact */
+.contact{background:var(--deep);color:var(--on-deep);position:relative;overflow:hidden}
+.contact .wrap{position:relative;padding-block:90px}
+.contact h2{font-size:clamp(34px,5vw,58px);font-weight:800}
+.contact p.sub{color:var(--on-deep-muted);margin-top:14px;font-size:18px;max-width:56ch}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:40px}
+.ccard{border:1px solid color-mix(in srgb,var(--on-deep) 22%,transparent);border-radius:12px;padding:18px;min-width:0}
+.ccard .label{color:var(--amber)}
+.ccard .val{font-family:var(--f-mono);font-size:15.5px;margin-top:8px;overflow-wrap:anywhere;user-select:all}
+.ccard button,.ccard a.go{margin-top:12px;font:500 13.5px var(--f-body);color:var(--on-deep);background:transparent;border:1px solid color-mix(in srgb,var(--on-deep) 40%,transparent);border-radius:999px;padding:6px 14px;cursor:pointer;text-decoration:none;display:inline-block}
+.ccard button:hover,.ccard a.go:hover{background:color-mix(in srgb,var(--on-deep) 12%,transparent)}
+.ccard .row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px;flex-wrap:wrap}
+.ccard .row .val{margin-top:0;min-width:0}
+.ccard .row button{margin-top:0}
+@media (max-width:820px){.cards{grid-template-columns:1fr}}
+footer{background:var(--deep-2);color:var(--on-deep-muted);font-size:13.5px}
+footer .wrap{padding-block:20px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .portrait svg,.caret,.route,.parcel.hit{animation:none}
+  .route{stroke-dashoffset:0}
+  .lift{transform:none;transition:none}
+  .lu{transition:none}
+}
+</style>
+</head>
+<body>
+
+
+<nav class="nav" aria-label="Sections">
+  <div class="wrap">
+    <a class="brand" href="#top">Sai Monish <span>Verukonda</span></a>
+    <ul>
+      <li><a href="#profile">Profile</a></li>
+      <li><a href="#journey">Journey</a></li>
+      <li><a href="#planning">Urban planning</a></li>
+      <li><a href="#gis">GIS projects</a></li>
+      <li><a href="#saudi">Saudi Arabia</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <canvas id="contours" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div>
+      <div class="label">Urban Planner · GIS &amp; Remote Sensing Specialist</div>
+      <h1>Sai Monish Verukonda<span class="thin">Planning better places with precise spatial data</span></h1>
+      <p class="lead">8+ years across master planning, GIS project management and LiDAR / UAV data processing, for government bodies in India and major development projects in Saudi Arabia.</p>
+      <div class="cta">
+        <a class="btn primary" href="#planning">See my projects</a>
+        <a class="btn ghost" href="#contact">Get in touch</a>
+      </div>
+    </div>
+    <div class="portrait">
+      <svg viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="96" fill="none" stroke="var(--amber)" stroke-width="2" stroke-dasharray="3 7"/><circle cx="100" cy="100" r="88" fill="none" stroke="var(--on-deep-muted)" stroke-width="1" stroke-dasharray="40 14" opacity=".6"/></svg>
+      <img src="data:image/jpeg;base64,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" alt="Portrait of Sai Monish Verukonda">
+    </div>
+  </div>
+  <div class="readout" aria-hidden="true">
+    <div class="wrap">
+      <span id="coord">16.5062° N · 80.6480° E</span>
+      <span class="scalebar"><i></i>0 — 500 m <svg width="18" height="26" viewBox="0 0 18 26"><path d="M9 1 L16 22 L9 17 L2 22 Z" fill="currentColor"/></svg> N</span>
+    </div>
+  </div>
+</header>
+
+<div class="stats">
+  <div class="wrap">
+    <div class="stat"><b data-count="8" data-suffix="+">8+</b><span>years in urban planning, GIS and remote sensing</span></div>
+    <div class="stat"><b data-count="5" data-suffix="+">5+</b><span>planning areas &amp; municipalities in master planning</span></div>
+    <div class="stat"><b data-count="20">20</b><span>member GIS team led as Project Manager</span></div>
+    <div class="stat"><b data-count="21">21</b><span>ULBs / cities supported under sanitation &amp; Swachh missions</span></div>
+  </div>
+</div>
+
+<main>
+<section class="sheet" id="profile">
+  <div class="wrap">
+    <div class="sheet-head"><div class="label">Profile</div><h2>A planner who builds with geospatial data</h2></div>
+    <div class="profile">
+      <div class="summary lift">
+        <p>I trained as a civil engineer and an urban &amp; regional planner, then specialised in remote sensing and GIS at the Indian Institute of Remote Sensing (ISRO). My work sits where those fields meet.</p>
+        <p>I have prepared GIS-based master plans and urban infrastructure studies for municipalities, led a 20-member team delivering web and mobile GIS for government clients, and now process LiDAR, UAV and mobile-mapping data into terrain models, 3D products and GIS databases at Fugro in Saudi Arabia.</p>
+        <p>I care about accurate data, clear maps and documentation that decision makers can act on.</p>
+      </div>
+      <ul class="creds lift">
+        <li><span class="yr">2020</span><div><b>PG Diploma, Remote Sensing &amp; GIS</b><span>IIRS (ISRO), Dehradun · Urban &amp; Regional Studies · CGPA 8.14</span></div></li>
+        <li><span class="yr">2017</span><div><b>M.Tech, Urban &amp; Regional Planning</b><span>University of Mysore · First Class</span></div></li>
+        <li><span class="yr">2015</span><div><b>B.Tech, Civil Engineering</b><span>S.R.K Institute of Technology</span></div></li>
+        <li><span class="yr">ITPI</span><div><b>Associate Member</b><span>Institute of Town Planners, India</span></div></li>
+        <li><span class="yr">Esri</span><div><b>Certification</b><span>Transform AEC Projects with GIS &amp; BIM</span></div></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="sheet" id="journey">
+  <div class="wrap">
+    <div class="sheet-head"><div class="label">Career journey</div><h2>From planning studios to point clouds</h2></div>
+    <div class="timeline" id="tl">
+      <div class="prog" aria-hidden="true"></div>
+      <div class="tl work lift"><div class="when">Jun 2024 – now</div><div><h3>Senior Data Processor (LiDAR/UAV &amp; GIS)</h3><p>Fugro · Dammam, Saudi Arabia</p><span class="tag">Professional</span></div></div>
+      <div class="tl work lift"><div class="when">2020 – 2024</div><div><h3>GIS Project Manager</h3><p>VVN Technologies · Mangalagiri, Andhra Pradesh</p><span class="tag">Professional</span></div></div>
+      <div class="tl edu lift"><div class="when">2020</div><div><h3>PG Diploma, Remote Sensing &amp; GIS</h3><p>Indian Institute of Remote Sensing (ISRO), Dehradun</p><span class="tag">Education</span></div></div>
+      <div class="tl work lift"><div class="when">2018 – 2019</div><div><h3>Urban Planner</h3><p>SKY Group · Bangalore</p><span class="tag">Professional</span></div></div>
+      <div class="tl work lift"><div class="when">2017 – 2018</div><div><h3>Urban Planner</h3><p>VVN Technologies · Mangalagiri</p><span class="tag">Professional</span></div></div>
+      <div class="tl edu lift"><div class="when">2017</div><div><h3>M.Tech, Urban &amp; Regional Planning</h3><p>University of Mysore</p><span class="tag">Education</span></div></div>
+      <div class="tl edu lift"><div class="when">2015</div><div><h3>B.Tech, Civil Engineering</h3><p>S.R.K Institute of Technology</p><span class="tag">Education</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="sheet" id="planning">
+  <div class="wrap">
+    <div class="sheet-head"><div class="label">Urban planning</div><h2>GIS-based master plans</h2><p>Master plans for municipalities in Andhra Pradesh and Odisha, from base mapping to final plan documents.</p></div>
+    <div class="grid2">
+      <div class="mapcard lift">
+        <svg id="lumap" viewBox="0 0 640 400" role="img" aria-label="Illustrative land-use map being classified parcel by parcel"></svg>
+        <div class="legend">
+          <span><i style="background:var(--lu-res)"></i>Residential</span>
+          <span><i style="background:var(--lu-com)"></i>Commercial</span>
+          <span><i style="background:var(--lu-ind)"></i>Industrial</span>
+          <span><i style="background:var(--lu-psp)"></i>Public &amp; semi-public</span>
+          <span><i style="background:var(--lu-green)"></i>Recreational / green</span>
+          <span><i style="background:var(--lu-agri)"></i>Agricultural</span>
+          <span><i style="background:var(--lu-water)"></i>Water body</span>
+        </div>
+        <div class="caption">Illustrative land-use map · not a real plan</div>
+      </div>
+      <div class="lift">
+        <div class="label">How a plan comes together</div>
+        <ol class="steps">
+          <li>Base mapping &amp; data collection</li>
+          <li>Existing land-use &amp; field surveys</li>
+          <li>GIS analysis: growth, suitability, infrastructure gaps</li>
+          <li>Stakeholder &amp; municipal consultations</li>
+          <li>Proposed land use &amp; zoning</li>
+          <li>Thematic maps &amp; plan documents</li>
+        </ol>
+        <div class="plans">
+          <div class="plan"><b>Andhra Pradesh · DTCP</b><span>Tadepalligudem and Madanapalle planning areas · 2018–19</span></div>
+          <div class="plan"><b>Odisha</b><span>GIS &amp; remote-sensing based master plans for 3 planning areas · 2018–19</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sheet-head" style="margin-top:80px"><div class="label">Urban missions</div><h2>Infrastructure &amp; national programmes</h2></div>
+    <div class="grid3">
+      <article class="panel lift"><div class="big" data-count="10">10<small>ULBs</small></div><h3 style="margin-top:16px">City Sanitation Plans</h3><div class="meta">Karnataka · 2018–19</div><ul><li>Urban infrastructure &amp; sanitation assessment</li><li>Field assessments and GIS analysis</li><li>Plan documentation &amp; reports</li></ul></article>
+      <article class="panel lift"><div class="big">11<small>cities</small></div><h3 style="margin-top:16px">Swachh Survekshan</h3><div class="meta">India · 2017–19</div><ul><li>Documentation &amp; field assessments</li><li>GIS-based analysis</li><li>Citizen engagement support</li></ul></article>
+      <article class="panel lift"><div class="big">AP<small>&amp; Telangana</small></div><h3 style="margin-top:16px">PMAY – Housing for All</h3><div class="meta">2017–18</div><ul><li>GIS-based analysis for affordable housing</li><li>Planning support across multiple cities</li><li>Project location mapping</li></ul></article>
+    </div>
+  </div>
+</section>
+
+<section class="sheet" id="gis">
+  <div class="wrap">
+    <div class="sheet-head"><div class="label">GIS &amp; ICT projects</div><h2>APIIC Land Bank web portal &amp; mobile app</h2><p>A GIS platform for the Andhra Pradesh Industrial Infrastructure Corporation that puts its industrial land bank on a searchable web map and in the field on mobile. 2023–24.</p></div>
+    <div class="grid2">
+      <div class="lift">
+        <div class="portal">
+          <div class="bar"><i></i><i></i><i></i><span>land-bank · web GIS</span></div>
+          <div class="search"><em>Search</em><span id="typed">vacant industrial parcels</span><span class="caret"></span></div>
+          <svg id="portalmap" viewBox="0 0 520 300" aria-label="Illustrative web GIS map with highlighted parcels and a route"></svg>
+        </div>
+        <div class="caption">Illustrative interface · not the live portal</div>
+      </div>
+      <div class="lift">
+        <div class="feats">
+          <div class="feat"><b>Land parcel mapping</b><span>Industrial land bank in one GIS database</span></div>
+          <div class="feat"><b>Spatial querying</b><span>Find parcels by location, area and attributes</span></div>
+          <div class="feat"><b>Routing &amp; location services</b><span>Directions to sites and facilities</span></div>
+          <div class="feat"><b>Web map visualisation</b><span>Interactive maps for decision makers</span></div>
+          <div class="feat"><b>Mobile GIS</b><span>Land bank data available in the field</span></div>
+          <div class="feat"><b>Training &amp; support</b><span>User training and technical support</span></div>
+        </div>
+        <div class="label" style="margin-top:28px">How the delivery was managed</div>
+        <div class="pills"><span class="pill">Requirement workshops</span><span class="pill">Workflow &amp; resource planning</span><span class="pill">Progress monitoring &amp; QA</span><span class="pill">Documentation &amp; handover</span></div>
+      </div>
+    </div>
+
+    <div class="sheet-head" style="margin-top:80px"><div class="label">Surveys &amp; mapping · 2020–24</div><h2>Surveys, base mapping &amp; risk assessment</h2><p>Led a 20-member GIS team, with standard procedures and QA workflows that improved data quality and turnaround.</p></div>
+    <div class="grid3">
+      <article class="panel lift"><h3>Drone &amp; DGPS surveys</h3><div class="meta">APIIC · Andhra Pradesh</div><ul><li>Drone and DGPS survey operations</li><li>Orthomosaics, contours and terrain models</li><li>Infrastructure mapping for industrial development</li></ul></article>
+      <article class="panel lift"><h3>Base mapping &amp; town surveys</h3><div class="meta">Bihar</div><ul><li>GIS base mapping for towns</li><li>Town surveys and GIS data collection</li><li>Mapping deliverables for government authorities</li></ul></article>
+      <article class="panel lift"><h3>Landslide micro-zonation</h3><div class="meta">Disaster-risk mapping</div><ul><li>Landslide micro-zonation &amp; vulnerability assessment</li><li>Critical community facility mapping</li><li>GIS inputs for risk-informed planning</li></ul></article>
+    </div>
+  </div>
+</section>
+
+<section class="sheet" id="saudi">
+  <div class="wrap">
+    <div class="sheet-head"><div class="label">Fugro · Saudi Arabia · 2024–present</div><h2>Geospatial data for Saudi development projects</h2><p>Processing LiDAR, UAV, mobile mapping and bathymetric data for airport, industrial, transport, coastal and tourism projects.</p></div>
+    <div class="grid2">
+      <div class="cloud lift">
+        <canvas id="cloud" aria-label="Illustrative LiDAR point cloud coloured by elevation" role="img"></canvas>
+        <div class="caption">Illustrative point cloud · coloured by elevation</div>
+        <div class="ramp" aria-hidden="true"></div>
+      </div>
+      <div class="lift" style="display:grid;gap:30px;align-content:start">
+        <div>
+          <div class="label" style="margin-bottom:14px">Projects</div>
+          <div class="chips">
+            <span class="chip">NEOM International Airport</span><span class="chip">NEOM OXAGON</span><span class="chip">NEOM Desert Farm</span><span class="chip">Red Sea Global</span><span class="chip">Riyadh Expo 2030</span><span class="chip">Wadi Afar</span><span class="chip">Albarki Road feasibility &amp; stability</span><span class="chip">TYPSA infrastructure</span>
+          </div>
+        </div>
+        <div>
+          <div class="label" style="margin-bottom:14px">What I deliver</div>
+          <ul class="deliver">
+            <li>Orthophotos &amp; orthomosaics</li><li>DTM / DSM / contour maps</li><li>3D models</li><li>Classified LiDAR point clouds</li><li>GIS databases</li><li>Topographic &amp; engineering drawings</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sheet" id="skills">
+  <div class="wrap">
+    <div class="sheet-head"><div class="label">Expertise</div><h2>Skills &amp; tools</h2></div>
+    <div class="grid3">
+      <div class="panel skill lift"><h3>Urban &amp; regional planning</h3><div class="tags"><span>Master plans</span><span>Land use &amp; zoning</span><span>Infrastructure planning</span><span>Transport planning</span><span>Urban surveys</span><span>DPRs</span></div></div>
+      <div class="panel skill lift"><h3>GIS &amp; spatial analysis</h3><div class="tags"><span>ArcGIS Pro</span><span>ArcGIS Enterprise / Online</span><span>QGIS</span><span>AutoCAD Map 3D</span><span>Web &amp; mobile GIS</span><span>Cartography</span></div></div>
+      <div class="panel skill lift"><h3>Remote sensing &amp; photogrammetry</h3><div class="tags"><span>ENVI</span><span>ERDAS Imagine</span><span>Pix4D</span><span>Agisoft Metashape</span><span>Orthophotos</span></div></div>
+      <div class="panel skill lift"><h3>LiDAR &amp; 3D</h3><div class="tags"><span>TerraScan</span><span>Point-cloud classification</span><span>DTM / DSM</span><span>3D models</span><span>Civil 3D</span><span>MicroStation</span></div></div>
+      <div class="panel skill lift"><h3>Databases &amp; automation</h3><div class="tags"><span>PostgreSQL / PostGIS</span><span>Oracle</span><span>SQL</span><span>Python</span><span>JavaScript</span></div></div>
+      <div class="panel skill lift"><h3>Reporting &amp; management</h3><div class="tags"><span>MS Office (advanced)</span><span>Technical reports</span><span>Presentations</span><span>Team leadership</span><span>Stakeholder coordination</span></div></div>
+    </div>
+
+    <div class="sheet-head" style="margin-top:80px"><div class="label">Highlights</div><h2>Key achievements</h2></div>
+    <ul class="wins">
+      <li class="lift"><b>Master plans for DTCP Andhra Pradesh</b><span>Supported GIS-based master plans for Tadepalligudem and Madanapalle, plus 3 planning areas in Odisha.</span></li>
+      <li class="lift"><b>Led a 20-member GIS team</b><span>Delivered government GIS projects, including the APIIC land bank web portal and mobile app.</span></li>
+      <li class="lift"><b>Recognised for performance</b><span>Performance-based pay revision as Project Manager – GIS &amp; RS at VVN Technologies (April 2021).</span></li>
+      <li class="lift"><b>Better, faster workflows</b><span>SOPs and standard GIS workflows that improved data quality and reduced turnaround time.</span></li>
+      <li class="lift"><b>Major project delivery</b><span>Geospatial products for NEOM, Red Sea Global and Riyadh Expo 2030.</span></li>
+      <li class="lift"><b>Academic distinction</b><span>PG Diploma in RS &amp; GIS from IIRS (ISRO) with distinction (CGPA 8.14).</span></li>
+    </ul>
+  </div>
+</section>
+
+<section class="sheet" id="roles">
+  <div class="wrap">
+    <div class="sheet-head"><div class="label">Open to opportunities</div><h2>Roles I am suited for</h2><p>Open to relocation and to on-site roles in India and the GCC.</p></div>
+    <div class="grid4">
+      <div class="panel role lift"><div class="k">Planning</div><h3>Urban / Town Planner</h3><p>Master plans, land-use planning, urban infrastructure studies and planning reports.</p></div>
+      <div class="panel role lift"><div class="k">GIS</div><h3>GIS Analyst / Specialist</h3><p>Geodatabases, spatial analysis, map services and web / mobile GIS on the ESRI platform.</p></div>
+      <div class="panel role lift"><div class="k">Remote sensing</div><h3>LiDAR / UAV Data Specialist</h3><p>Point clouds, photogrammetry, terrain models and 3D products for engineering projects.</p></div>
+      <div class="panel role lift"><div class="k">Management</div><h3>GIS Project Manager</h3><p>Leading teams, client workshops, QA and delivery of government GIS projects.</p></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<section class="contact" id="contact">
+  <div class="wrap">
+    <div class="label" style="color:var(--amber)">Contact</div>
+    <h2 style="margin-top:14px">Let's talk about your next project</h2>
+    <p class="sub">Based in Dammam, Saudi Arabia · from Vijayawada, Andhra Pradesh · notice period 2 months.</p>
+    <div class="cards">
+      <div class="ccard"><div class="label">Email</div>
+        <div class="row"><div class="val" id="v-email2">monishveru@gmail.com</div><button type="button" data-copy="v-email2">Copy</button></div>
+        <div class="row"><div class="val" id="v-email1">saimonishverukonda@gmail.com</div><button type="button" data-copy="v-email1">Copy</button></div>
+       </div>
+      <div class="ccard"><div class="label">Phone / WhatsApp</div>
+        <div class="row"><div class="val" id="v-phone1">+966-505773677</div><button type="button" data-copy="v-phone1">Copy</button></div>
+        <div class="row"><div class="val" id="v-phone2">+91-9700669016</div><button type="button" data-copy="v-phone2">Copy</button></div>
+      </div>
+      <div class="ccard"><div class="label">LinkedIn</div><div class="val">linkedin.com/in/sai-monish-verukonda</div><a class="go" href="https://www.linkedin.com/in/sai-monish-verukonda/" target="_blank" rel="noopener">Open profile</a></div>
+    </div>
+  </div>
+</section>
+<footer><div class="wrap"><span>© 2026 Sai Monish Verukonda</span><span class="mono">Urban Planning · GIS · Remote Sensing</span></div></footer>
+
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+  /* ---------- hero contours (marching squares over a drifting terrain field) ---------- */
+  const cv = document.getElementById('contours'), hero = document.querySelector('.hero');
+  const ctx = cv.getContext('2d');
+  let W = 0, H = 0, dpr = 1, start = performance.now(), last = 0, heroVisible = true;
+  function size(){ dpr = Math.min(devicePixelRatio || 1, 2); W = hero.clientWidth; H = hero.clientHeight; cv.width = W*dpr; cv.height = H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); }
+  function field(x, y, t){
+    const hills = [[.74,.32,.25,1.05],[.95,.88,.2,.8],[.5,1.05,.24,.65],[.2,-.1,.18,.45]];
+    let v = 0;
+    for (const [cx, cy, s, a] of hills){
+      const dx = (x/W - cx - .02*Math.sin(t*.3+a)) * (W/H), dy = y/H - cy - .02*Math.cos(t*.25+a);
+      v += a*Math.exp(-(dx*dx+dy*dy)/(2*s*s*3));
+    }
+    return v + .07*Math.sin(x*.006 + t*.4)*Math.cos(y*.009 - t*.3);
+  }
+  function drawContours(t, reveal){
+    const step = 12, cols = Math.ceil(W/step)+1, rows = Math.ceil(H/step)+1, g = new Float32Array(cols*rows);
+    for (let j=0;j<rows;j++) for (let i=0;i<cols;i++) g[j*cols+i] = field(i*step, j*step, t);
+    ctx.clearRect(0,0,W,H);
+    ctx.save();
+    if (reveal < 1){ ctx.beginPath(); ctx.arc(W*.74, H*.32, Math.hypot(W,H)*reveal, 0, Math.PI*2); ctx.clip(); }
+    const cMinor = css('--contour'), cIndex = css('--contour-index');
+    for (let k=1;k<=22;k++){
+      const L = k*.055, index = k%5===0;
+      ctx.beginPath(); ctx.strokeStyle = index ? cIndex : cMinor; ctx.lineWidth = index ? 1.8 : 1;
+      for (let j=0;j<rows-1;j++) for (let i=0;i<cols-1;i++){
+        const a=g[j*cols+i], b=g[j*cols+i+1], c=g[(j+1)*cols+i+1], d=g[(j+1)*cols+i];
+        const idx=(a>L)<<3|(b>L)<<2|(c>L)<<1|(d>L);
+        if (idx===0||idx===15) continue;
+        const x=i*step, y=j*step;
+        const T=[x+step*(L-a)/(b-a), y], R=[x+step, y+step*(L-b)/(c-b)], B=[x+step*(L-d)/(c-d), y+step], Lf=[x, y+step*(L-a)/(d-a)];
+        const seg=(p,q)=>{ctx.moveTo(p[0],p[1]);ctx.lineTo(q[0],q[1]);};
+        switch(idx){case 1:case 14:seg(Lf,B);break;case 2:case 13:seg(B,R);break;case 3:case 12:seg(Lf,R);break;case 4:case 11:seg(T,R);break;case 6:case 9:seg(T,B);break;case 7:case 8:seg(T,Lf);break;case 5:seg(T,Lf);seg(B,R);break;case 10:seg(T,R);seg(Lf,B);break;}
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function tick(now){
+    if (heroVisible && now - last > 40){
+      last = now;
+      const el = (now - start)/1000;
+      drawContours(el*.35, Math.min(1, el/1.8));
+    }
+    requestAnimationFrame(tick);
+  }
+  size();
+  addEventListener('resize', () => { size(); if (reduce) drawContours(0,1); });
+  if (reduce) drawContours(0,1); else requestAnimationFrame(tick);
+  new IntersectionObserver(e => heroVisible = e[0].isIntersecting).observe(hero);
+  // cursor readout: maps the hero to a small extent around Vijayawada
+  const coord = document.getElementById('coord');
+  hero.addEventListener('pointermove', e => {
+    const r = hero.getBoundingClientRect(), fx = (e.clientX - r.left)/r.width, fy = (e.clientY - r.top)/r.height;
+    coord.textContent = (16.56 - fy*.11).toFixed(4) + '° N · ' + (80.58 + fx*.14).toFixed(4) + '° E';
+  });
+
+  /* ---------- counters ---------- */
+  const counters = document.querySelectorAll('.stat b[data-count]');
+  if (!reduce && 'IntersectionObserver' in window){
+    const io = new IntersectionObserver(es => es.forEach(en => {
+      if (!en.isIntersecting) return; io.unobserve(en.target);
+      const el = en.target, end = +el.dataset.count, suf = el.dataset.suffix || '', t0 = performance.now();
+      const step = now => { const p = Math.min(1,(now-t0)/1300), v = Math.round(end*(1-Math.pow(1-p,3))); el.textContent = v + suf; if (p<1) requestAnimationFrame(step); };
+      requestAnimationFrame(step);
+    }), {threshold:.6});
+    counters.forEach(c => io.observe(c));
+  }
+
+  /* ---------- gentle lift for items below the fold ---------- */
+  if (!reduce && 'IntersectionObserver' in window){
+    const io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target);} }), {rootMargin:'0px 0px -8% 0px'});
+    document.querySelectorAll('.lift').forEach(el => {
+      if (el.getBoundingClientRect().top < innerHeight) el.classList.add('in'); else io.observe(el);
+    });
+  } else document.querySelectorAll('.lift').forEach(el => el.classList.add('in'));
+
+  /* ---------- timeline progress ---------- */
+  const tl = document.getElementById('tl');
+  function tlProg(){ const r = tl.getBoundingClientRect(); const p = Math.max(0, Math.min(1, (innerHeight*.7 - r.top)/r.height)); tl.style.setProperty('--p', p.toFixed(3)); }
+  if (!reduce){ addEventListener('scroll', tlProg, {passive:true}); tlProg(); }
+
+  /* ---------- land-use map ---------- */
+  const NS = 'http://www.w3.org/2000/svg', lu = document.getElementById('lumap');
+  const mk = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; };
+  mk('rect', {x:0,y:0,width:640,height:400,fill:'var(--road)',rx:8}, lu);
+  const riverY = x => 330 - x*.2 + 22*Math.sin(x/85);
+  const cols = 9, rows = 6, bw = 60, bh = 52, gap = 9, ox = 18, oy = 16, cx = 300, cy = 160;
+  for (let r=0;r<rows;r++) for (let c=0;c<cols;c++){
+    const x = ox + c*(bw+gap), y = oy + r*(bh+gap), mx = x+bw/2, my = y+bh/2;
+    const dr = Math.abs(my - riverY(mx));
+    if (dr < 30) continue;
+    const d = Math.hypot(mx-cx, (my-cy)*1.2);
+    let use = 'res';
+    if (dr < 62) use = 'green';
+    else if (d < 70) use = 'com';
+    else if ((r===1&&c===3)||(r===2&&c===5)||(r===3&&c===2)) use = 'psp';
+    else if (c>=7 && r<=2) use = 'ind';
+    else if (d > 290 || (r===0&&c<=1)) use = 'agri';
+    mk('rect', {x, y, width:bw, height:bh, rx:4, class:'lu', fill:`var(--lu-${use})`, style:`transition-delay:${(d*3.2).toFixed(0)}ms`}, lu);
+  }
+  let rp = ''; for (let x=-10;x<=650;x+=10) rp += (x<0?'M':'L') + x + ',' + riverY(x).toFixed(1);
+  mk('path', {d:rp, fill:'none', stroke:'var(--lu-water)', 'stroke-width':30, 'stroke-linecap':'round'}, lu);
+  mk('path', {d:'M0,' + (oy+3*(bh+gap)-gap/2) + 'H640 M' + (ox+4*(bw+gap)-gap/2) + ',0V400', stroke:'var(--muted)', 'stroke-width':3, 'stroke-dasharray':'10 6', fill:'none', opacity:.55}, lu);
+  if (!reduce && 'IntersectionObserver' in window){
+    const io = new IntersectionObserver(es => { if (!es[0].isIntersecting) return; io.disconnect();
+      lu.classList.add('blank'); void lu.getBoundingClientRect(); requestAnimationFrame(() => lu.classList.remove('blank')); }, {threshold:.45});
+    io.observe(lu);
+  }
+
+  /* ---------- portal mock ---------- */
+  const pm = document.getElementById('portalmap');
+  mk('rect', {x:0,y:0,width:520,height:300,fill:'var(--teal-soft)'}, pm);
+  const hits = new Set(['1-4','2-1','3-5','0-6']);
+  for (let r=0;r<4;r++) for (let c=0;c<8;c++){
+    const x = 14 + c*62 + (r%2)*8, y = 14 + r*70;
+    mk('rect', {x, y, width:54 - (c%3)*6, height:60 - (r%2)*8, rx:3, class:'parcel' + (hits.has(r+'-'+c) ? ' hit' : '')}, pm);
+  }
+  mk('path', {d:'M40,286 C120,250 150,210 200,200 S300,190 330,150 S400,120 432,100', class:'route'}, pm);
+  mk('circle', {cx:40, cy:286, r:8, fill:'var(--teal)', stroke:'var(--surface)', 'stroke-width':3}, pm);
+  mk('circle', {cx:432, cy:100, r:8, fill:'var(--amber)', stroke:'var(--surface)', 'stroke-width':3}, pm);
+  const typed = document.getElementById('typed');
+  const queries = ['vacant industrial parcels', 'parcels larger than 5 acres', 'route to selected parcel'];
+  if (!reduce){
+    let qi = 0;
+    const typeQ = () => {
+      const q = queries[qi]; let n = 0;
+      const t = setInterval(() => { typed.textContent = q.slice(0, ++n); if (n >= q.length){ clearInterval(t); setTimeout(() => { qi = (qi+1)%queries.length; typeQ(); }, 2600); } }, 55);
+    };
+    setTimeout(typeQ, 1500);
+  }
+
+  /* ---------- point cloud ---------- */
+  const pc = document.getElementById('cloud'), pctx = pc.getContext('2d');
+  const N = 70, pts = [];
+  for (let i=0;i<N;i++) for (let j=0;j<N;j++){
+    const u = i/(N-1)*2-1, v = j/(N-1)*2-1;
+    const z = .55*Math.exp(-((u-.3)**2+(v+.2)**2)/.18) + .35*Math.exp(-((u+.45)**2+(v-.4)**2)/.1) + .08*Math.sin(u*7)*Math.cos(v*6) + .12*(1-v)*.3;
+    pts.push([u + (Math.random()-.5)*.02, v + (Math.random()-.5)*.02, z]);
+  }
+  const ramp = ['#2c7bb6','#00a6ca','#00ccbc','#90eb9d','#ffff8c','#f9d057','#f29e2e','#e76818','#d7191c'];
+  let zmin = Infinity, zmax = -Infinity; pts.forEach(p => { zmin = Math.min(zmin,p[2]); zmax = Math.max(zmax,p[2]); });
+  pts.forEach(p => p.push(ramp[Math.min(ramp.length-1, Math.floor((p[2]-zmin)/(zmax-zmin)*ramp.length))]));
+  let PW = 0, PH = 0, cloudVisible = false;
+  function pcSize(){ const d = Math.min(devicePixelRatio||1,2); PW = pc.clientWidth; PH = pc.clientHeight; pc.width = PW*d; pc.height = PH*d; pctx.setTransform(d,0,0,d,0,0); }
+  function pcDraw(a){
+    pctx.clearRect(0,0,PW,PH);
+    const s = Math.min(PW, PH*1.7)*.36, ca = Math.cos(a), sa = Math.sin(a), cxp = PW/2, cyp = PH*.56;
+    const proj = pts.map(p => { const x = p[0]*ca - p[1]*sa, y = p[0]*sa + p[1]*ca; return [cxp + x*s, cyp + y*s*.45 - p[2]*s*.85, y, p[3]]; });
+    proj.sort((m,n) => m[2]-n[2]);
+    for (const q of proj){ pctx.fillStyle = q[3]; pctx.fillRect(q[0], q[1], 2, 2); }
+  }
+  pcSize(); pcDraw(.6);
+  addEventListener('resize', () => { pcSize(); pcDraw(.6); });
+  if (!reduce){
+    new IntersectionObserver(e => cloudVisible = e[0].isIntersecting).observe(pc);
+    let a = .6, lt = 0;
+    const loop = now => { if (cloudVisible && now - lt > 33){ lt = now; a += .006; pcDraw(a); } requestAnimationFrame(loop); };
+    requestAnimationFrame(loop);
+  }
+
+  /* ---------- nav highlight ---------- */
+  const links = [...document.querySelectorAll('.nav ul a')];
+  const secs = links.map(l => document.querySelector(l.getAttribute('href'))).filter(Boolean);
+  const navIO = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting){ links.forEach(l => l.classList.toggle('on', l.getAttribute('href') === '#'+en.target.id)); } }), {rootMargin:'-45% 0px -50% 0px'});
+  secs.forEach(s => navIO.observe(s));
+
+  /* ---------- copy buttons ---------- */
+  document.querySelectorAll('[data-copy]').forEach(btn => btn.addEventListener('click', () => {
+    const el = document.getElementById(btn.dataset.copy), label = btn.textContent;
+    const done = () => { btn.textContent = 'Copied'; setTimeout(() => btn.textContent = label, 1600); };
+    const select = () => { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = 'Selected, press Ctrl+C'; setTimeout(() => btn.textContent = label, 2200); };
+    try { navigator.clipboard.writeText(el.textContent.trim()).then(done, select); } catch(e){ select(); }
+  }));
+})();
+</script>
+
+</body>
+</html>
